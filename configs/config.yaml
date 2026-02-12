@@ -1,0 +1,142 @@
+# Main Configuration File
+# Override with environment-specific configs as needed
+
+project:
+  name: "Finance ML Project"
+  version: "0.1.0"
+  description: "Machine Learning platform for financial market prediction"
+
+data:
+  sources:
+    - name: "yfinance"
+      enabled: true
+    - name: "alpha_vantage"
+      enabled: false
+
+  symbols:
+    default:
+      - "AAPL"
+      - "MSFT"
+      - "SPY"
+
+  date_ranges:
+    train_start: "2020-01-01"
+    train_end: "2023-12-31"
+    test_start: "2024-01-01"
+    test_end: "2024-12-31"
+
+  storage:
+    raw_data_path: "data/raw"
+    processed_data_path: "data/processed"
+    external_data_path: "data/external"
+
+features:
+  technical_indicators:
+    - name: "returns"
+      params:
+        periods: [1, 5, 20]
+
+    - name: "moving_average"
+      params:
+        windows: [5, 10, 20, 50, 200]
+
+    - name: "volatility"
+      params:
+        windows: [5, 20, 60]
+
+    - name: "rsi"
+      params:
+        period: 14
+
+    - name: "macd"
+      params:
+        fast: 12
+        slow: 26
+        signal: 9
+
+    - name: "bollinger_bands"
+      params:
+        window: 20
+        num_std: 2
+
+  target:
+    name: "next_day_direction"
+    type: "binary"  # binary, multiclass, regression
+    horizon: 1  # days ahead
+
+models:
+  random_seed: 42
+  test_size: 0.2
+  validation_size: 0.1
+
+  logistic_regression:
+    enabled: true
+    params:
+      C: 1.0
+      max_iter: 1000
+      solver: "lbfgs"
+
+  random_forest:
+    enabled: true
+    params:
+      n_estimators: 100
+      max_depth: 10
+      min_samples_split: 5
+      min_samples_leaf: 2
+
+  lstm:
+    enabled: false  # Phase 2
+    params:
+      sequence_length: 60
+      hidden_size: 128
+      num_layers: 2
+      dropout: 0.2
+      learning_rate: 0.001
+      batch_size: 32
+      epochs: 100
+
+backtesting:
+  initial_capital: 10000
+  commission: 0.001  # 0.1%
+  slippage: 0.0005  # 0.05%
+
+  strategies:
+    threshold:
+      enabled: true
+      buy_threshold: 0.6
+      sell_threshold: 0.4
+
+    mean_reversion:
+      enabled: false
+      lookback_period: 20
+      entry_std: 2.0
+      exit_std: 0.5
+
+evaluation:
+  metrics:
+    classification:
+      - "accuracy"
+      - "precision"
+      - "recall"
+      - "f1"
+      - "auc_roc"
+
+    financial:
+      - "sharpe_ratio"
+      - "max_drawdown"
+      - "cumulative_return"
+      - "win_rate"
+      - "profit_factor"
+
+visualization:
+  style: "seaborn"
+  figure_size: [12, 6]
+  dpi: 100
+  save_format: "png"
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/app.log"
+  max_bytes: 10485760  # 10MB
+  backup_count: 5
