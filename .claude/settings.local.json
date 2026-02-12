@@ -10,7 +10,9 @@
       "Bash(pytest:*)",
       "Bash(PYTHONPATH=/Users/carterchan/Documents/self-projects/financeTool python:*)",
       "Bash(PYTHONPATH=. python:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
