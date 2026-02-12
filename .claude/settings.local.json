@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git reset:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial project setup - Finance ML Platform\n\n- Complete project structure with organized directories\n- Comprehensive documentation in docs/ folder\n  - PROJECT_ROADMAP.md: 12-18 month development plan\n  - Guides: SETUP_GUIDE.md, RUN_GUIDE.md\n  - Tracking: PROJECT_STATUS.md, FEATURES.md, TODO.md\n  - Development: CONTRIBUTING.md\n- Python package structure with __init__.py files\n- Configuration files \\(config.yaml, .env.example\\)\n- requirements.txt with all dependencies \\(Phase 0-6\\)\n- .gitignore for Python/ML projects\n- Ready to begin Phase 0: MVP implementation\nEOF\n\\)\")",
+      "Bash(gh repo create:*)",
+      "Bash(python:*)",
+      "Bash(pytest:*)",
+      "Bash(PYTHONPATH=/Users/carterchan/Documents/self-projects/financeTool python:*)",
+      "Bash(PYTHONPATH=. python:*)",
+      "Bash(ls:*)"
     ]
   }
 }
