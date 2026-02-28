@@ -1,11 +1,15 @@
 """
-Feature Engineering Module for Phase 0 MVP.
+Feature Engineering Module for Phase 1.
 
 This module transforms raw price data into ML-ready features including:
 - Daily returns
 - Moving averages
 - Volatility
 - Price relative to moving average
+- RSI (Relative Strength Index)
+- MACD (Moving Average Convergence Divergence)
+- Bollinger Bands position
+- Volume ratio
 - Binary target variable (next-day direction)
 
 Functions:
@@ -13,6 +17,10 @@ Functions:
     compute_moving_averages: Calculate MAs for multiple windows
     compute_volatility: Calculate rolling volatility
     compute_price_relative_to_ma: Price position relative to MA
+    compute_rsi: Relative Strength Index
+    compute_macd: MACD line and signal
+    compute_bollinger_bands: Price position within Bollinger Bands
+    compute_volume_features: Volume relative to its moving average
     generate_target: Create binary target variable
     compute_features: Main orchestrator function
 """
@@ -22,7 +30,11 @@ import numpy as np
 from typing import List
 import logging
 
-from src.config import MA_WINDOWS, VOLATILITY_WINDOW, FEATURE_NAMES, TARGET_NAME
+from src.config import (
+    MA_WINDOWS, VOLATILITY_WINDOW, FEATURE_NAMES, TARGET_NAME,
+    RSI_WINDOW, MACD_FAST, MACD_SLOW, MACD_SIGNAL,
+    BB_WINDOW, BB_STD, VOLUME_MA_WINDOW,
+)
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -151,6 +163,175 @@ def compute_price_relative_to_ma(
     return df
 
 
+def compute_rsi(df: pd.DataFrame, window: int = None) -> pd.DataFrame:
+    """
+    Calculate the Relative Strength Index (RSI).
+
+    RSI measures momentum: how fast and how much price has moved.
+    Formula: RSI = 100 - (100 / (1 + RS))
+    where RS = average_gain / average_loss over `window` days.
+
+    Interpretation:
+        > 70: Overbought (price may fall)
+        < 30: Oversold (price may rise)
+        50:   Neutral momentum
+
+    Args:
+        df: DataFrame with 'Close' column
+        window: Lookback period (default: RSI_WINDOW = 14)
+
+    Returns:
+        DataFrame with additional 'rsi_14' column
+    """
+    if window is None:
+        window = RSI_WINDOW
+
+    df = df.copy()
+    delta = df['Close'].diff()
+
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+
+    avg_gain = gain.ewm(com=window - 1, min_periods=window).mean()
+    avg_loss = loss.ewm(com=window - 1, min_periods=window).mean()
+
+    rs = avg_gain / avg_loss
+    df['rsi_14'] = 100 - (100 / (1 + rs))
+
+    logger.debug(f"Computed RSI({window})")
+    return df
+
+
+def compute_macd(
+    df: pd.DataFrame,
+    fast: int = None,
+    slow: int = None,
+    signal: int = None,
+) -> pd.DataFrame:
+    """
+    Calculate MACD (Moving Average Convergence Divergence).
+
+    MACD captures trend direction and momentum by comparing two EMAs.
+    Formula:
+        MACD line   = EMA(fast) - EMA(slow)
+        Signal line = EMA(signal) of MACD line
+
+    Interpretation:
+        MACD > signal: Bullish momentum
+        MACD < signal: Bearish momentum
+        MACD crosses 0: Trend change
+
+    Args:
+        df: DataFrame with 'Close' column
+        fast: Fast EMA period (default: MACD_FAST = 12)
+        slow: Slow EMA period (default: MACD_SLOW = 26)
+        signal: Signal line EMA period (default: MACD_SIGNAL = 9)
+
+    Returns:
+        DataFrame with additional 'macd' and 'macd_signal' columns
+    """
+    if fast is None:
+        fast = MACD_FAST
+    if slow is None:
+        slow = MACD_SLOW
+    if signal is None:
+        signal = MACD_SIGNAL
+
+    df = df.copy()
+    ema_fast = df['Close'].ewm(span=fast, adjust=False).mean()
+    ema_slow = df['Close'].ewm(span=slow, adjust=False).mean()
+
+    df['macd'] = ema_fast - ema_slow
+    df['macd_signal'] = df['macd'].ewm(span=signal, adjust=False).mean()
+
+    logger.debug(f"Computed MACD({fast},{slow},{signal})")
+    return df
+
+
+def compute_bollinger_bands(
+    df: pd.DataFrame,
+    window: int = None,
+    n_std: float = None,
+) -> pd.DataFrame:
+    """
+    Calculate Bollinger Bands and price position within them.
+
+    Bollinger Bands place boundaries around price based on volatility.
+    Formula:
+        Middle = SMA(window)
+        Upper  = Middle + n_std * rolling_std(window)
+        Lower  = Middle - n_std * rolling_std(window)
+        Position = (Close - Lower) / (Upper - Lower)  [0 to 1]
+
+    Interpretation:
+        bb_position ~1.0: Price near upper band (overbought)
+        bb_position ~0.0: Price near lower band (oversold)
+        bb_position ~0.5: Price near middle band
+
+    Args:
+        df: DataFrame with 'Close' column
+        window: Rolling window (default: BB_WINDOW = 20)
+        n_std: Number of standard deviations (default: BB_STD = 2.0)
+
+    Returns:
+        DataFrame with additional 'bb_position' column
+    """
+    if window is None:
+        window = BB_WINDOW
+    if n_std is None:
+        n_std = BB_STD
+
+    df = df.copy()
+    middle = df['Close'].rolling(window=window).mean()
+    std = df['Close'].rolling(window=window).std()
+
+    upper = middle + n_std * std
+    lower = middle - n_std * std
+
+    band_width = upper - lower
+    df['bb_position'] = (df['Close'] - lower) / band_width
+
+    logger.debug(f"Computed Bollinger Bands({window}, {n_std}σ)")
+    return df
+
+
+def compute_volume_features(df: pd.DataFrame, window: int = None) -> pd.DataFrame:
+    """
+    Calculate volume relative to its moving average.
+
+    Volume confirms price moves: high volume = strong conviction.
+    Formula:
+        volume_ratio = Volume / rolling_mean(Volume, window)
+
+    Interpretation:
+        > 1.5: Unusually high volume (strong signal)
+        ~1.0:  Average volume
+        < 0.5: Very low volume (weak signal)
+
+    Args:
+        df: DataFrame with 'Volume' column
+        window: Rolling window for average volume (default: VOLUME_MA_WINDOW = 20)
+
+    Returns:
+        DataFrame with additional 'volume_ratio' column
+    """
+    if window is None:
+        window = VOLUME_MA_WINDOW
+
+    df = df.copy()
+
+    if 'Volume' not in df.columns:
+        logger.warning("No 'Volume' column found — filling volume_ratio with 1.0")
+        df['volume_ratio'] = 1.0
+        return df
+
+    vol_ma = df['Volume'].rolling(window=window).mean()
+    df['volume_ratio'] = df['Volume'] / vol_ma
+
+    logger.debug(f"Computed volume ratio (window={window})")
+    return df
+
+
 def generate_target(df: pd.DataFrame) -> pd.DataFrame:
     """
     Generate binary target variable for next-day direction prediction.
@@ -219,6 +400,11 @@ def compute_features(df: pd.DataFrame) -> pd.DataFrame:
     df = compute_moving_averages(df, windows=MA_WINDOWS)
     df = compute_volatility(df, window=VOLATILITY_WINDOW)
     df = compute_price_relative_to_ma(df)
+    # Phase 1 indicators
+    df = compute_rsi(df)
+    df = compute_macd(df)
+    df = compute_bollinger_bands(df)
+    df = compute_volume_features(df)
     df = generate_target(df)
 
     # Log NaN counts before dropping

@@ -8,11 +8,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Data collection script for yfinance
-- Basic feature engineering pipeline
-- Logistic Regression model implementation
-- Random Forest model implementation
-- Visualization notebooks
+- Random Forest + XGBoost model comparison
+- test_features.py and test_backtester.py
+- Multi-model per-ticker performance breakdown
+
+---
+
+## [0.2.0] - 2026-02-28
+
+### Added
+- `src/backtester.py` — Long-only backtesting engine
+  - `run_backtest()`: simulates strategy vs buy-and-hold
+  - `compute_backtest_metrics()`: total return, Sharpe ratio, max drawdown, win rate
+  - `print_backtest_report()`: formatted per-ticker report
+  - `plot_equity_curves()`: equity curve chart saved to docs/figures/
+- 5 new technical indicator features in `src/features.py`:
+  - `compute_rsi()` — RSI(14)
+  - `compute_macd()` — MACD line + signal line (12,26,9)
+  - `compute_bollinger_bands()` — price position within bands
+  - `compute_volume_features()` — volume ratio vs 20-day average
+- Rebuilt `scripts/generate_html_dashboard.py` for Phase 1 (12 tickers, 6 charts each, 20 KB)
+
+### Changed
+- `src/config.py`: expanded TICKERS from 2 → 12, added RSI/MACD/BB/Volume params, updated FEATURE_NAMES (5 → 10)
+- `main.py`: updated to Phase 1, added backtest step (step 7/8), updated summary report
+- `src/features.py`: updated `compute_features()` to call all 4 new indicator functions
+
+### Results
+- 12/12 tickers processed successfully
+- 72 charts generated
+- Strategy outperforms buy-and-hold on: META (+105% vs +75%), TSLA (+23% vs +4%), GOOGL (+35% vs +32%), TLT (-11% vs -33%)
 
 ---
 

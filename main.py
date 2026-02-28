@@ -1,20 +1,21 @@
 """
-Main Pipeline for Phase 0 MVP.
+Main Pipeline for Phase 1.
 
 This script orchestrates the complete ML pipeline:
 1. Load configuration
 2. Fetch stock data
-3. Engineer features
+3. Engineer features  (returns, MAs, volatility, RSI, MACD, Bollinger Bands, volume)
 4. Train models
 5. Generate predictions
 6. Evaluate performance
-7. Create visualizations
+7. Backtest strategy vs buy-and-hold
+8. Create visualizations
 
 Usage:
     python main.py
 
 Author: Carter Chan
-Phase: 0 - MVP
+Phase: 1 - Multi-Asset & Technical Indicators
 """
 
 import pandas as pd
@@ -55,6 +56,7 @@ from src.visualization import (
     plot_predictions_timeline,
     plot_model_comparison
 )
+from src.backtester import run_backtest, compute_backtest_metrics, print_backtest_report, plot_equity_curves
 
 # Setup logging
 logging.basicConfig(
@@ -166,8 +168,17 @@ def process_ticker(ticker: str) -> dict:
         baseline = calculate_baseline_accuracy(y_test)
         beats_baseline = is_better_than_baseline(metrics, y_test)
 
-        # Step 7: Create visualizations
-        logger.info(f"\n[7/7] Creating visualizations...")
+        # Step 7: Backtest strategy
+        logger.info(f"\n[7/8] Backtesting strategy...")
+        df_raw_test = df_raw.loc[test_data.index]
+        backtest_result = run_backtest(predictions, df_raw_test)
+        backtest_metrics = compute_backtest_metrics(backtest_result)
+        print_backtest_report(backtest_metrics, ticker)
+        plot_equity_curves(backtest_result, ticker, save=True)
+        logger.info(f"✅ Backtest complete")
+
+        # Step 8: Create visualizations
+        logger.info(f"\n[8/8] Creating visualizations...")
 
         # Price history
         plot_price_history(df_raw, ticker, save=True)
@@ -176,7 +187,6 @@ def process_ticker(ticker: str) -> dict:
         plot_features(df_features, ticker, save=True)
 
         # Predictions on price chart
-        df_raw_test = df_raw.loc[test_data.index]
         plot_price_with_predictions(df_raw_test, predictions, ticker, save=True)
 
         # Confusion matrix
@@ -210,7 +220,8 @@ def process_ticker(ticker: str) -> dict:
             'metrics': metrics,
             'baseline': baseline,
             'beats_baseline': beats_baseline,
-            'model_type': MODEL_TYPE
+            'model_type': MODEL_TYPE,
+            'backtest': backtest_metrics,
         })
 
         logger.info(f"\n{'='*70}")
@@ -227,7 +238,7 @@ def process_ticker(ticker: str) -> dict:
 def main():
     """Main pipeline execution."""
     print("\n" + "="*70)
-    print("FINANCE ML LAB - PHASE 0 MVP")
+    print("FINANCE ML LAB - PHASE 1")
     print("="*70)
     print(f"Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("="*70)
@@ -300,19 +311,24 @@ def main():
             metrics = all_results[ticker]['metrics']
             baseline = all_results[ticker]['baseline']
             beats = all_results[ticker]['beats_baseline']
+            bt = all_results[ticker]['backtest']
 
             print(f"\n{ticker}:")
-            print(f"  Accuracy:  {metrics['accuracy']:.4f} (Baseline: {baseline:.4f})")
-            print(f"  Precision: {metrics['precision']:.4f}")
-            print(f"  Recall:    {metrics['recall']:.4f}")
-            print(f"  F1 Score:  {metrics['f1']:.4f}")
-            print(f"  Status:    {'✅ Beats baseline' if beats else '❌ Below baseline'}")
+            print(f"  Accuracy:        {metrics['accuracy']:.4f} (Baseline: {baseline:.4f})")
+            print(f"  F1 Score:        {metrics['f1']:.4f}")
+            print(f"  ML Status:       {'✅ Beats baseline' if beats else '❌ Below baseline'}")
+            strat_ret = bt['strategy_total_return']
+            bah_ret = bt['bah_total_return']
+            outperforms = strat_ret > bah_ret
+            print(f"  Strategy Return: {strat_ret:+.1f}% vs Buy&Hold {bah_ret:+.1f}%  "
+                  f"{'✅' if outperforms else '📉'}")
+            print(f"  Sharpe Ratio:    {bt['strategy_sharpe']:.2f}")
 
     # Final message
     print("\n" + "="*70)
     print(f"End time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("="*70)
-    print("\n✅ Phase 0 pipeline complete!")
+    print("\n✅ Phase 1 pipeline complete!")
     print(f"\nResults saved to:")
     print(f"  - Models: models/")
     print(f"  - Processed data: {PROCESSED_DATA_PATH}/")

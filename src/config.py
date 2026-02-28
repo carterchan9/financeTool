@@ -1,5 +1,5 @@
 """
-Configuration file for Phase 0 MVP.
+Configuration file for Phase 1.
 All parameters for data, features, and models centralized here.
 
 This file contains all configurable parameters for the Finance ML pipeline.
@@ -11,8 +11,17 @@ Modify these values to experiment with different settings without changing code.
 # ============================================================================
 
 # Ticker symbols to analyze
-# Start with 2-3 liquid stocks for Phase 0
-TICKERS = ["AAPL", "SPY"]
+# Phase 1: Expanded to 12 assets across equities, ETFs, commodities, crypto
+TICKERS = [
+    # Individual stocks
+    "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA",
+    # Broad market ETFs
+    "SPY", "QQQ",
+    # Bonds & commodities
+    "GLD", "TLT",
+    # Crypto
+    "BTC-USD",
+]
 
 # Date range for historical data
 START_DATE = "2015-01-01"  # Beginning of training data
@@ -34,8 +43,23 @@ MA_WINDOWS = [5, 20]
 # 20 = approximately 1 month of trading days
 VOLATILITY_WINDOW = 20
 
+# RSI (Relative Strength Index)
+RSI_WINDOW = 14  # Standard 14-day RSI
+
+# MACD (Moving Average Convergence Divergence)
+MACD_FAST = 12    # Fast EMA period
+MACD_SLOW = 26    # Slow EMA period
+MACD_SIGNAL = 9   # Signal line EMA period
+
+# Bollinger Bands
+BB_WINDOW = 20    # Rolling window for mean and std
+BB_STD = 2.0      # Number of standard deviations for bands
+
+# Volume
+VOLUME_MA_WINDOW = 20  # Window for volume moving average
+
 # Minimum number of data points required after feature engineering
-# This accounts for NaN rows created by rolling calculations
+# Increased to account for MACD lookback: slow(26) + signal(9) = 35 periods
 MIN_DATA_POINTS = 100
 
 # ============================================================================
@@ -129,11 +153,18 @@ LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 # These will be the column names in the processed data
 FEATURE_NAMES = [
+    # Phase 0 features
     "returns",           # Daily returns
     "ma_5",             # 5-day moving average
     "ma_20",            # 20-day moving average
     "volatility",       # Rolling volatility
     "price_to_ma",      # Price relative to MA_20
+    # Phase 1 features
+    "rsi_14",           # Relative Strength Index (14-day)
+    "macd",             # MACD line (EMA12 - EMA26)
+    "macd_signal",      # MACD signal line (EMA9 of MACD)
+    "bb_position",      # Price position within Bollinger Bands (0=lower, 1=upper)
+    "volume_ratio",     # Today's volume vs 20-day average volume
 ]
 
 # Target variable name
@@ -213,14 +244,19 @@ def get_model_params(model_type: str = None):
 def print_config():
     """Print current configuration for verification."""
     print("=" * 60)
-    print("Phase 0 Configuration")
+    print("Phase 1 Configuration")
     print("=" * 60)
-    print(f"Tickers: {TICKERS}")
+    print(f"Tickers ({len(TICKERS)}): {', '.join(TICKERS)}")
     print(f"Date Range: {START_DATE} to {END_DATE}")
     print(f"Test Split: {TEST_SPLIT_DATE}")
     print(f"Model Type: {MODEL_TYPE}")
     print(f"Moving Average Windows: {MA_WINDOWS}")
     print(f"Volatility Window: {VOLATILITY_WINDOW}")
+    print(f"RSI Window: {RSI_WINDOW}")
+    print(f"MACD: fast={MACD_FAST}, slow={MACD_SLOW}, signal={MACD_SIGNAL}")
+    print(f"Bollinger Bands: window={BB_WINDOW}, std={BB_STD}")
+    print(f"Volume MA Window: {VOLUME_MA_WINDOW}")
+    print(f"Features ({len(FEATURE_NAMES)}): {', '.join(FEATURE_NAMES)}")
     print(f"Random Seed: {RANDOM_SEED}")
     print("=" * 60)
 

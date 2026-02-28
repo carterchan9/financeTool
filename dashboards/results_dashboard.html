@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance ML Lab — Phase 1 Results</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+  header { background: #1a1d2e; border-bottom: 1px solid #2d3748;
+            padding: 18px 32px; display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 1.4rem; font-weight: 700; color: #63b3ed; }
+  header span { color: #718096; font-size: 0.85rem; }
+
+  .tab-bar { background: #1a1d2e; padding: 12px 32px; display: flex;
+              flex-wrap: wrap; gap: 8px; border-bottom: 1px solid #2d3748; position: sticky; top: 0; z-index: 10; }
+  .tab-btn { background: #2d3748; border: none; color: #a0aec0; padding: 6px 16px;
+              border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all .15s; }
+  .tab-btn:hover { background: #4a5568; color: #e2e8f0; }
+  .tab-btn.active { background: #3182ce; color: white; }
+
+  .ticker-header { padding: 24px 32px 0; display: flex; align-items: baseline; gap: 24px; flex-wrap: wrap; }
+  .ticker-header h2 { font-size: 1.8rem; font-weight: 700; color: #63b3ed; }
+  .ticker-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .ticker-stats span { background: #2d3748; padding: 4px 12px; border-radius: 20px;
+                        font-size: 0.8rem; color: #a0aec0; }
+
+  .charts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(540px, 1fr));
+                  gap: 20px; padding: 20px 32px 40px; }
+  .chart-block h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: .08em;
+                     color: #718096; margin-bottom: 8px; }
+  .chart-block img { width: 100%; border-radius: 8px; border: 1px solid #2d3748; display: block; }
+  .no-chart { color: #4a5568; font-size: 0.8rem; padding: 12px; border: 1px dashed #2d3748; border-radius: 8px; }
+
+  .model-comparison { padding: 20px 32px 40px; }
+  .model-comparison h2 { font-size: 1.2rem; color: #63b3ed; margin-bottom: 16px; }
+  .model-comparison img { max-width: 860px; width: 100%; border-radius: 8px; border: 1px solid #2d3748; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Finance ML Lab — Phase 1</h1>
+  <span>Generated 2026-02-28 17:20 &nbsp;·&nbsp; 12 assets &nbsp;·&nbsp; 10 features</span>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn" onclick="showTicker('AAPL')" id="btn-AAPL">AAPL</button>
+<button class="tab-btn" onclick="showTicker('MSFT')" id="btn-MSFT">MSFT</button>
+<button class="tab-btn" onclick="showTicker('GOOGL')" id="btn-GOOGL">GOOGL</button>
+<button class="tab-btn" onclick="showTicker('AMZN')" id="btn-AMZN">AMZN</button>
+<button class="tab-btn" onclick="showTicker('NVDA')" id="btn-NVDA">NVDA</button>
+<button class="tab-btn" onclick="showTicker('META')" id="btn-META">META</button>
+<button class="tab-btn" onclick="showTicker('TSLA')" id="btn-TSLA">TSLA</button>
+<button class="tab-btn" onclick="showTicker('SPY')" id="btn-SPY">SPY</button>
+<button class="tab-btn" onclick="showTicker('QQQ')" id="btn-QQQ">QQQ</button>
+<button class="tab-btn" onclick="showTicker('GLD')" id="btn-GLD">GLD</button>
+<button class="tab-btn" onclick="showTicker('TLT')" id="btn-TLT">TLT</button>
+<button class="tab-btn" onclick="showTicker('BTC-USD')" id="btn-BTC-USD">BTC-USD</button>
+  <button class="tab-btn" onclick="showTicker('__comparison__')" id="btn-__comparison__">All Tickers</button>
+</div>
+
+
+        <section class="ticker-section" id="section-AAPL" style="display:none">
+            <div class="ticker-header">
+                <h2>AAPL</h2>
+                <div class="ticker-stats"><span>1743 train days</span><span>752 test days</span><span>10 features</span><span>53% up</span></div>
+            </div>
+            <div class="charts-grid"><div class="chart-block"><h3>Price History</h3><figure><img src="../docs/figures/AAPL_price_history.png" alt="AAPL price_history" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Technical Indicators</h3><figure><img src="../docs/figures/AAPL_features.png" alt="AAPL features" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Predictions</h3><figure><img src="../docs/figures/AAPL_predictions.png" alt="AAPL predictions" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Backtest vs Buy & Hold</h3><figure><img src="../docs/figures/AAPL_backtest.png" alt="AAPL backtest" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Accuracy Over Time</h3><figure><img src="../docs/figures/AAPL_accuracy_timeline.png" alt="AAPL accuracy_timeline" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Confusion Matrix</h3><figure><img src="../docs/figures/AAPL_confusion_matrix.png" alt="AAPL confusion_matrix" loading="lazy"></figure></div></div>
+        </section>
+        
+        <section class="ticker-section" id="section-MSFT" style="display:none">
+            <div class="ticker-header">
+                <h2>MSFT</h2>
+                <div class="ticker-stats"><span>1743 train days</span><span>752 test days</span><span>10 features</span><span>54% up</span></div>
+            </div>
+            <div class="charts-grid"><div class="chart-block"><h3>Price History</h3><figure><img src="../docs/figures/MSFT_price_history.png" alt="MSFT price_history" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Technical Indicators</h3><figure><img src="../docs/figures/MSFT_features.png" alt="MSFT features" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Predictions</h3><figure><img src="../docs/figures/MSFT_predictions.png" alt="MSFT predictions" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Backtest vs Buy & Hold</h3><figure><img src="../docs/figures/MSFT_backtest.png" alt="MSFT backtest" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Accuracy Over Time</h3><figure><img src="../docs/figures/MSFT_accuracy_timeline.png" alt="MSFT accuracy_timeline" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Confusion Matrix</h3><figure><img src="../docs/figures/MSFT_confusion_matrix.png" alt="MSFT confusion_matrix" loading="lazy"></figure></div></div>
+        </section>
+        
+        <section class="ticker-section" id="section-GOOGL" style="display:none">
+            <div class="ticker-header">
+                <h2>GOOGL</h2>
+                <div class="ticker-stats"><span>1743 train days</span><span>752 test days</span><span>10 features</span><span>54% up</span></div>
+            </div>
+            <div class="charts-grid"><div class="chart-block"><h3>Price History</h3><figure><img src="../docs/figures/GOOGL_price_history.png" alt="GOOGL price_history" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Technical Indicators</h3><figure><img src="../docs/figures/GOOGL_features.png" alt="GOOGL features" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Predictions</h3><figure><img src="../docs/figures/GOOGL_predictions.png" alt="GOOGL predictions" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Backtest vs Buy & Hold</h3><figure><img src="../docs/figures/GOOGL_backtest.png" alt="GOOGL backtest" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Accuracy Over Time</h3><figure><img src="../docs/figures/GOOGL_accuracy_timeline.png" alt="GOOGL accuracy_timeline" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Confusion Matrix</h3><figure><img src="../docs/figures/GOOGL_confusion_matrix.png" alt="GOOGL confusion_matrix" loading="lazy"></figure></div></div>
+        </section>
+        
+        <section class="ticker-section" id="section-AMZN" style="display:none">
+            <div class="ticker-header">
+                <h2>AMZN</h2>
+                <div class="ticker-stats"><span>1743 train days</span><span>752 test days</span><span>10 features</span><span>54% up</span></div>
+            </div>
+            <div class="charts-grid"><div class="chart-block"><h3>Price History</h3><figure><img src="../docs/figures/AMZN_price_history.png" alt="AMZN price_history" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Technical Indicators</h3><figure><img src="../docs/figures/AMZN_features.png" alt="AMZN features" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Predictions</h3><figure><img src="../docs/figures/AMZN_predictions.png" alt="AMZN predictions" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Backtest vs Buy & Hold</h3><figure><img src="../docs/figures/AMZN_backtest.png" alt="AMZN backtest" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Accuracy Over Time</h3><figure><img src="../docs/figures/AMZN_accuracy_timeline.png" alt="AMZN accuracy_timeline" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Confusion Matrix</h3><figure><img src="../docs/figures/AMZN_confusion_matrix.png" alt="AMZN confusion_matrix" loading="lazy"></figure></div></div>
+        </section>
+        
+        <section class="ticker-section" id="section-NVDA" style="display:none">
+            <div class="ticker-header">
+                <h2>NVDA</h2>
+                <div class="ticker-stats"><span>1743 train days</span><span>752 test days</span><span>10 features</span><span>55% up</span></div>
+            </div>
+            <div class="charts-grid"><div class="chart-block"><h3>Price History</h3><figure><img src="../docs/figures/NVDA_price_history.png" alt="NVDA price_history" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Technical Indicators</h3><figure><img src="../docs/figures/NVDA_features.png" alt="NVDA features" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Predictions</h3><figure><img src="../docs/figures/NVDA_predictions.png" alt="NVDA predictions" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Backtest vs Buy & Hold</h3><figure><img src="../docs/figures/NVDA_backtest.png" alt="NVDA backtest" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Accuracy Over Time</h3><figure><img src="../docs/figures/NVDA_accuracy_timeline.png" alt="NVDA accuracy_timeline" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Confusion Matrix</h3><figure><img src="../docs/figures/NVDA_confusion_matrix.png" alt="NVDA confusion_matrix" loading="lazy"></figure></div></div>
+        </section>
+        
+        <section class="ticker-section" id="section-META" style="display:none">
+            <div class="ticker-header">
+                <h2>META</h2>
+                <div class="ticker-stats"><span>1743 train days</span><span>752 test days</span><span>10 features</span><span>53% up</span></div>
+            </div>
+            <div class="charts-grid"><div class="chart-block"><h3>Price History</h3><figure><img src="../docs/figures/META_price_history.png" alt="META price_history" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Technical Indicators</h3><figure><img src="../docs/figures/META_features.png" alt="META features" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Predictions</h3><figure><img src="../docs/figures/META_predictions.png" alt="META predictions" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Backtest vs Buy & Hold</h3><figure><img src="../docs/figures/META_backtest.png" alt="META backtest" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Accuracy Over Time</h3><figure><img src="../docs/figures/META_accuracy_timeline.png" alt="META accuracy_timeline" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Confusion Matrix</h3><figure><img src="../docs/figures/META_confusion_matrix.png" alt="META confusion_matrix" loading="lazy"></figure></div></div>
+        </section>
+        
+        <section class="ticker-section" id="section-TSLA" style="display:none">
+            <div class="ticker-header">
+                <h2>TSLA</h2>
+                <div class="ticker-stats"><span>1743 train days</span><span>752 test days</span><span>10 features</span><span>52% up</span></div>
+            </div>
+            <div class="charts-grid"><div class="chart-block"><h3>Price History</h3><figure><img src="../docs/figures/TSLA_price_history.png" alt="TSLA price_history" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Technical Indicators</h3><figure><img src="../docs/figures/TSLA_features.png" alt="TSLA features" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Predictions</h3><figure><img src="../docs/figures/TSLA_predictions.png" alt="TSLA predictions" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Backtest vs Buy & Hold</h3><figure><img src="../docs/figures/TSLA_backtest.png" alt="TSLA backtest" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Accuracy Over Time</h3><figure><img src="../docs/figures/TSLA_accuracy_timeline.png" alt="TSLA accuracy_timeline" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Confusion Matrix</h3><figure><img src="../docs/figures/TSLA_confusion_matrix.png" alt="TSLA confusion_matrix" loading="lazy"></figure></div></div>
+        </section>
+        
+        <section class="ticker-section" id="section-SPY" style="display:none">
+            <div class="ticker-header">
+                <h2>SPY</h2>
+                <div class="ticker-stats"><span>1743 train days</span><span>752 test days</span><span>10 features</span><span>55% up</span></div>
+            </div>
+            <div class="charts-grid"><div class="chart-block"><h3>Price History</h3><figure><img src="../docs/figures/SPY_price_history.png" alt="SPY price_history" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Technical Indicators</h3><figure><img src="../docs/figures/SPY_features.png" alt="SPY features" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Predictions</h3><figure><img src="../docs/figures/SPY_predictions.png" alt="SPY predictions" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Backtest vs Buy & Hold</h3><figure><img src="../docs/figures/SPY_backtest.png" alt="SPY backtest" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Accuracy Over Time</h3><figure><img src="../docs/figures/SPY_accuracy_timeline.png" alt="SPY accuracy_timeline" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Confusion Matrix</h3><figure><img src="../docs/figures/SPY_confusion_matrix.png" alt="SPY confusion_matrix" loading="lazy"></figure></div></div>
+        </section>
+        
+        <section class="ticker-section" id="section-QQQ" style="display:none">
+            <div class="ticker-header">
+                <h2>QQQ</h2>
+                <div class="ticker-stats"><span>1743 train days</span><span>752 test days</span><span>10 features</span><span>56% up</span></div>
+            </div>
+            <div class="charts-grid"><div class="chart-block"><h3>Price History</h3><figure><img src="../docs/figures/QQQ_price_history.png" alt="QQQ price_history" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Technical Indicators</h3><figure><img src="../docs/figures/QQQ_features.png" alt="QQQ features" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Predictions</h3><figure><img src="../docs/figures/QQQ_predictions.png" alt="QQQ predictions" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Backtest vs Buy & Hold</h3><figure><img src="../docs/figures/QQQ_backtest.png" alt="QQQ backtest" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Accuracy Over Time</h3><figure><img src="../docs/figures/QQQ_accuracy_timeline.png" alt="QQQ accuracy_timeline" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Confusion Matrix</h3><figure><img src="../docs/figures/QQQ_confusion_matrix.png" alt="QQQ confusion_matrix" loading="lazy"></figure></div></div>
+        </section>
+        
+        <section class="ticker-section" id="section-GLD" style="display:none">
+            <div class="ticker-header">
+                <h2>GLD</h2>
+                <div class="ticker-stats"><span>1743 train days</span><span>752 test days</span><span>10 features</span><span>52% up</span></div>
+            </div>
+            <div class="charts-grid"><div class="chart-block"><h3>Price History</h3><figure><img src="../docs/figures/GLD_price_history.png" alt="GLD price_history" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Technical Indicators</h3><figure><img src="../docs/figures/GLD_features.png" alt="GLD features" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Predictions</h3><figure><img src="../docs/figures/GLD_predictions.png" alt="GLD predictions" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Backtest vs Buy & Hold</h3><figure><img src="../docs/figures/GLD_backtest.png" alt="GLD backtest" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Accuracy Over Time</h3><figure><img src="../docs/figures/GLD_accuracy_timeline.png" alt="GLD accuracy_timeline" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Confusion Matrix</h3><figure><img src="../docs/figures/GLD_confusion_matrix.png" alt="GLD confusion_matrix" loading="lazy"></figure></div></div>
+        </section>
+        
+        <section class="ticker-section" id="section-TLT" style="display:none">
+            <div class="ticker-header">
+                <h2>TLT</h2>
+                <div class="ticker-stats"><span>1743 train days</span><span>752 test days</span><span>10 features</span><span>51% up</span></div>
+            </div>
+            <div class="charts-grid"><div class="chart-block"><h3>Price History</h3><figure><img src="../docs/figures/TLT_price_history.png" alt="TLT price_history" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Technical Indicators</h3><figure><img src="../docs/figures/TLT_features.png" alt="TLT features" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Predictions</h3><figure><img src="../docs/figures/TLT_predictions.png" alt="TLT predictions" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Backtest vs Buy & Hold</h3><figure><img src="../docs/figures/TLT_backtest.png" alt="TLT backtest" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Accuracy Over Time</h3><figure><img src="../docs/figures/TLT_accuracy_timeline.png" alt="TLT accuracy_timeline" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Confusion Matrix</h3><figure><img src="../docs/figures/TLT_confusion_matrix.png" alt="TLT confusion_matrix" loading="lazy"></figure></div></div>
+        </section>
+        
+        <section class="ticker-section" id="section-BTC-USD" style="display:none">
+            <div class="ticker-header">
+                <h2>BTC-USD</h2>
+                <div class="ticker-stats"><span>2537 train days</span><span>1095 test days</span><span>10 features</span><span>53% up</span></div>
+            </div>
+            <div class="charts-grid"><div class="chart-block"><h3>Price History</h3><figure><img src="../docs/figures/BTC-USD_price_history.png" alt="BTC-USD price_history" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Technical Indicators</h3><figure><img src="../docs/figures/BTC-USD_features.png" alt="BTC-USD features" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Predictions</h3><figure><img src="../docs/figures/BTC-USD_predictions.png" alt="BTC-USD predictions" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Backtest vs Buy & Hold</h3><figure><img src="../docs/figures/BTC-USD_backtest.png" alt="BTC-USD backtest" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Accuracy Over Time</h3><figure><img src="../docs/figures/BTC-USD_accuracy_timeline.png" alt="BTC-USD accuracy_timeline" loading="lazy"></figure></div>
+<div class="chart-block"><h3>Confusion Matrix</h3><figure><img src="../docs/figures/BTC-USD_confusion_matrix.png" alt="BTC-USD confusion_matrix" loading="lazy"></figure></div></div>
+        </section>
+        
+
+<section class="model-comparison" id="section-__comparison__" style="display:none">
+  <h2>Model Comparison — All Tickers</h2>
+  <img src="../docs/figures/model_comparison.png" alt="Model comparison">
+</section>
+
+<script>
+  function showTicker(id) {
+    document.querySelectorAll('.ticker-section, .model-comparison').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const section = document.getElementById('section-' + id);
+    if (section) section.style.display = '';
+    const btn = document.getElementById('btn-' + id);
+    if (btn) btn.classList.add('active');
+  }
+  // Show first ticker on load
+  showTicker('AAPL');
+</script>
+</body>
+</html>

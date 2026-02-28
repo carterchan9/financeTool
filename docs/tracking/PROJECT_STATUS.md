@@ -1,8 +1,8 @@
 # Project Status
 
-**Last Updated**: 2026-02-12
-**Current Phase**: Phase 0 - MVP Setup ✅ COMPLETE
-**Overall Progress**: 8% (Phase 0 of 6 phases complete)
+**Last Updated**: 2026-02-28
+**Current Phase**: Phase 1 - Multi-Asset & Backtesting 🚧 IN PROGRESS
+**Overall Progress**: 22% (Phase 0 complete + Phase 1 core built)
 
 ---
 
@@ -11,7 +11,7 @@
 | Phase | Status | Start Date | End Date | Progress |
 |-------|--------|------------|----------|----------|
 | Phase 0: MVP Setup | ✅ Complete | 2026-02-12 | 2026-02-12 | 100% |
-| Phase 1: Multi-Asset & Backtesting | ⏸️ Not Started | TBD | TBD | 0% |
+| Phase 1: Multi-Asset & Backtesting | 🚧 In Progress | 2026-02-28 | TBD | 60% |
 | Phase 2: Advanced ML Models | ⏸️ Not Started | TBD | TBD | 0% |
 | Phase 3: Alternative Data & NLP | ⏸️ Not Started | TBD | TBD | 0% |
 | Phase 4: Portfolio Optimization & Risk | ⏸️ Not Started | TBD | TBD | 0% |
@@ -20,7 +20,43 @@
 
 ---
 
-## Current Phase Details: Phase 0 ✅ COMPLETE
+## Current Phase Details: Phase 1 🚧 IN PROGRESS
+
+### Goals
+- ✅ Expand to 12 assets across equities, ETFs, commodities, crypto
+- ✅ Add technical indicators: RSI, MACD, Bollinger Bands, volume ratio
+- ✅ Build backtesting engine (strategy vs buy-and-hold)
+- ⬜ Add Random Forest + XGBoost model comparison
+- ⬜ Expand test suite to cover new modules
+- ⬜ Performance analysis and tuning
+
+### Task Checklist
+- [x] Expand TICKERS from 2 → 12 in config.py
+- [x] Add RSI(14) to features.py
+- [x] Add MACD(12,26,9) to features.py
+- [x] Add Bollinger Band position to features.py
+- [x] Add volume ratio to features.py
+- [x] Build backtester.py (long-only strategy, buy-and-hold benchmark)
+- [x] Integrate backtest into main.py pipeline
+- [x] Generate equity curve charts for all 12 tickers
+- [x] Rebuild HTML dashboard to support Phase 1 (12 tickers, 6 charts each)
+- [ ] Add Random Forest run to pipeline (MODEL_TYPE = "random_forest")
+- [ ] Add XGBoost model
+- [ ] Multi-model comparison (LR vs RF vs XGB per ticker)
+- [ ] Expand tests: test_features.py, test_backtester.py
+
+### Phase 1 Results (2026-02-28)
+- **Assets**: 12/12 processed successfully
+- **Features**: 10 (5 Phase 0 + 5 new technical indicators)
+- **Accuracy range**: 49–54% (near random, expected for daily direction)
+- **Strategy outperforms buy-and-hold**: META ✅, TSLA ✅, GOOGL ✅, TLT ✅
+- **Best Sharpe ratio**: META (0.97), NVDA (0.87), GLD (0.86)
+- **Key insight**: Strategy reduces max drawdown on every asset vs buy-and-hold
+- **Figures**: 72 charts + HTML dashboard
+
+---
+
+## Phase 0 Details: ✅ COMPLETE
 
 ### Goals
 - ✅ Get a working project running with basic stock prediction and visualization
@@ -82,6 +118,14 @@
 
 ## Recent Accomplishments
 
+### Phase 1 Core (2026-02-28)
+- [x] ✅ Expanded to 12 assets (7 stocks + 2 ETFs + 2 bonds/commodities + BTC)
+- [x] ✅ Added 5 technical indicators (RSI, MACD, signal, BB position, volume ratio)
+- [x] ✅ Built backtesting engine with long-only strategy vs buy-and-hold
+- [x] ✅ Full pipeline run: 12/12 tickers, 72 charts generated
+- [x] ✅ Rebuilt HTML dashboard for Phase 1 (20 KB, relative image paths)
+- [x] ✅ Updated documentation for Phase 1
+
 ### Phase 0 Completion (2026-02-12)
 - [x] ✅ Complete MVP implementation
 - [x] ✅ 7 production modules created
@@ -130,33 +174,34 @@
    - Add pre-commit hooks
    - Set up CI/CD
 
-### Future (Phase 1)
-1. Add technical indicators (RSI, MACD, Bollinger Bands)
-2. Implement backtesting engine
-3. Add multi-asset support
-4. Calculate Sharpe ratio and drawdowns
-5. Strategy evaluation framework
+### Phase 1 Remaining
+1. Add Random Forest model run and compare vs Logistic Regression
+2. Add XGBoost model
+3. Expand test suite: test_features.py, test_backtester.py
+4. Feature importance analysis across 12 assets
+
+### Phase 2 Preview
+1. LSTM/GRU sequence models (PyTorch)
+2. Hyperparameter tuning with Optuna
+3. Experiment tracking with MLflow
 
 ---
 
 ## Key Metrics
 
 ### Technical Metrics
-- **Models Trained**: 4 (2 Logistic Regression, 2 Random Forest)
-- **Assets Tracked**: 2 (AAPL, SPY)
-- **Features Engineered**: 5 (returns, ma_5, ma_20, volatility, price_to_ma)
-- **Code Coverage**: Config 100%, Overall ~30% (needs improvement)
+- **Models Trained**: 12 (Logistic Regression per ticker)
+- **Assets Tracked**: 12 (AAPL, MSFT, GOOGL, AMZN, NVDA, META, TSLA, SPY, QQQ, GLD, TLT, BTC-USD)
+- **Features Engineered**: 10 (returns, ma_5, ma_20, volatility, price_to_ma, rsi_14, macd, macd_signal, bb_position, volume_ratio)
+- **Code Coverage**: Config 100%, Overall ~25% (new modules need tests)
 - **API Endpoints**: 0 (Phase 5)
 
 ### Project Metrics
-- **Total Lines of Code**: ~9,700
-- **Source Code**: ~1,500 lines
-- **Tests Written**: 13 (config module only)
-- **Documentation Pages**: 20+
-- **Visualizations**: 17 figures
-- **Functions Implemented**: 34+
-- **Modules Created**: 7
-- **GitHub Stars**: 0 (new project)
+- **Source Modules**: 8 (added backtester.py)
+- **Tests Written**: 13 (config only — expanding in Phase 1)
+- **Documentation Pages**: 22+
+- **Visualizations**: 72 figures + HTML dashboard
+- **Functions Implemented**: 50+
 
 ### Performance Metrics (Demo Run)
 - **Pipeline Runtime**: <30 seconds per ticker
