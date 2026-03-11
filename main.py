@@ -5,11 +5,10 @@ This script orchestrates the complete ML pipeline:
 1. Load configuration
 2. Fetch stock data
 3. Engineer features  (returns, MAs, volatility, RSI, MACD, Bollinger Bands, volume)
-4. Train models
-5. Generate predictions
-6. Evaluate performance
-7. Backtest strategy vs buy-and-hold
-8. Create visualizations
+4. Train all 3 models (Logistic Regression, Random Forest, XGBoost)
+5. Compare models — pick best by F1 score
+6. Backtest best model strategy vs buy-and-hold
+7. Create visualizations
 
 Usage:
     python main.py
@@ -30,7 +29,7 @@ from src.config import (
     START_DATE,
     END_DATE,
     TEST_SPLIT_DATE,
-    MODEL_TYPE,
+    ALL_MODEL_TYPES,
     PROCESSED_DATA_PATH,
     print_config,
     validate_config
@@ -143,33 +142,48 @@ def process_ticker(ticker: str) -> dict:
             results['error'] = "Insufficient data"
             return results
 
-        # Step 4: Train model
-        logger.info(f"\n[4/7] Training {MODEL_TYPE} model...")
-        model = train_model(X_train, y_train, model_type=MODEL_TYPE)
+        # Step 4: Train all models and compare
+        logger.info(f"\n[4/7] Training {len(ALL_MODEL_TYPES)} models: {ALL_MODEL_TYPES}...")
+        all_model_results = {}
 
-        # Save model
-        model_path = save_model(model, ticker, MODEL_TYPE)
-        logger.info(f"✅ Model saved to {model_path}")
+        for model_type in ALL_MODEL_TYPES:
+            logger.info(f"  Training {model_type}...")
+            m = train_model(X_train, y_train, model_type=model_type)
+            save_model(m, ticker, model_type)
+            preds = predict(m, X_test)
+            probas = predict_proba(m, X_test)
+            met = evaluate_classification(y_test, preds, probas)
+            all_model_results[model_type] = {
+                'model': m,
+                'predictions': preds,
+                'probabilities': probas,
+                'metrics': met,
+            }
 
-        # Step 5: Generate predictions
-        logger.info(f"\n[5/7] Generating predictions...")
-        predictions = predict(model, X_test)
-        probabilities = predict_proba(model, X_test)
+        # Print per-model summary
+        print(f"\n  {'Model':<16} {'Accuracy':>10} {'F1':>8} {'AUC':>8}")
+        print(f"  {'─'*44}")
+        for mt, r in all_model_results.items():
+            m = r['metrics']
+            print(f"  {mt:<16} {m['accuracy']:>10.4f} {m['f1']:>8.4f} {m['auc_roc']:>8.4f}")
 
-        logger.info(f"✅ Generated {len(predictions)} predictions")
+        # Pick best model by F1 score
+        best_model_type = max(all_model_results, key=lambda mt: all_model_results[mt]['metrics']['f1'])
+        best = all_model_results[best_model_type]
+        predictions = best['predictions']
+        probabilities = best['probabilities']
+        metrics = best['metrics']
+        model = best['model']
+        logger.info(f"✅ Best model: {best_model_type} (F1={metrics['f1']:.4f})")
 
-        # Step 6: Evaluate model
-        logger.info(f"\n[6/7] Evaluating model...")
-        metrics = evaluate_classification(y_test, predictions, probabilities)
-
-        print_evaluation_report(metrics, f"{ticker} - {MODEL_TYPE.title()} Model")
-
-        # Check if model beats baseline
+        # Step 5: Evaluate best model fully
+        logger.info(f"\n[5/7] Evaluating best model ({best_model_type})...")
+        print_evaluation_report(metrics, f"{ticker} - {best_model_type} (best)")
         baseline = calculate_baseline_accuracy(y_test)
         beats_baseline = is_better_than_baseline(metrics, y_test)
 
-        # Step 7: Backtest strategy
-        logger.info(f"\n[7/8] Backtesting strategy...")
+        # Step 6: Backtest best model
+        logger.info(f"\n[6/7] Backtesting {best_model_type} strategy...")
         df_raw_test = df_raw.loc[test_data.index]
         backtest_result = run_backtest(predictions, df_raw_test)
         backtest_metrics = compute_backtest_metrics(backtest_result)
@@ -177,35 +191,26 @@ def process_ticker(ticker: str) -> dict:
         plot_equity_curves(backtest_result, ticker, save=True)
         logger.info(f"✅ Backtest complete")
 
-        # Step 8: Create visualizations
-        logger.info(f"\n[8/8] Creating visualizations...")
+        # Step 7: Visualizations
+        logger.info(f"\n[7/7] Creating visualizations...")
 
-        # Price history
         plot_price_history(df_raw, ticker, save=True)
-
-        # Features
         plot_features(df_features, ticker, save=True)
-
-        # Predictions on price chart
         plot_price_with_predictions(df_raw_test, predictions, ticker, save=True)
-
-        # Confusion matrix
         plot_confusion_matrix(
             metrics['confusion_matrix'],
-            title=f"{ticker} - Confusion Matrix",
+            title=f"{ticker} - Confusion Matrix ({best_model_type})",
             filename=f"{ticker}_confusion_matrix",
             save=True
         )
-
-        # Predictions timeline
         plot_predictions_timeline(test_data, predictions, y_test, ticker, save=True)
 
-        # Feature importance (if available)
-        if MODEL_TYPE == "random_forest":
-            importance = get_feature_importance(model, X_train.columns.tolist())
+        # Feature importance for tree-based models
+        importance = get_feature_importance(model, X_train.columns.tolist())
+        if importance is not None:
             plot_feature_importance(
                 importance,
-                title=f"{ticker} - Feature Importance",
+                title=f"{ticker} - Feature Importance ({best_model_type})",
                 filename=f"{ticker}_feature_importance",
                 save=True
             )
@@ -220,7 +225,8 @@ def process_ticker(ticker: str) -> dict:
             'metrics': metrics,
             'baseline': baseline,
             'beats_baseline': beats_baseline,
-            'model_type': MODEL_TYPE,
+            'best_model_type': best_model_type,
+            'all_model_results': {mt: r['metrics'] for mt, r in all_model_results.items()},
             'backtest': backtest_metrics,
         })
 
@@ -285,10 +291,10 @@ def main():
         for ticker in failed_tickers:
             print(f"     - {ticker}: {all_results[ticker]['error']}")
 
-    # Model comparison (if multiple successful)
+    # Model comparison across tickers (best model per ticker)
     if len(successful_tickers) > 1:
         print("\n" + "="*70)
-        print("MODEL COMPARISON ACROSS TICKERS")
+        print("BEST MODEL PER TICKER")
         print("="*70)
 
         comparison_data = {}
@@ -297,9 +303,23 @@ def main():
 
         comparison_df = compare_models(comparison_data)
         print("\n" + comparison_df.to_string(index=False))
-
-        # Plot comparison
         plot_model_comparison(comparison_df, save=True)
+
+        # Show which model type won each ticker
+        print("\n" + "="*70)
+        print("MODEL TYPE WINNERS")
+        print("="*70)
+        print(f"\n  {'Ticker':<10} {'Best Model':<18} {'F1':>8}  vs  LR F1 / RF F1 / XGB F1")
+        print(f"  {'─'*65}")
+        for ticker in successful_tickers:
+            r = all_results[ticker]
+            best = r['best_model_type']
+            amr = r['all_model_results']
+            lr_f1  = amr.get('logistic', {}).get('f1', 0)
+            rf_f1  = amr.get('random_forest', {}).get('f1', 0)
+            xgb_f1 = amr.get('xgboost', {}).get('f1', 0)
+            print(f"  {ticker:<10} {best:<18} {r['metrics']['f1']:>8.4f}     "
+                  f"{lr_f1:.4f} / {rf_f1:.4f} / {xgb_f1:.4f}")
 
     # Performance summary for successful tickers
     if successful_tickers:
@@ -312,8 +332,9 @@ def main():
             baseline = all_results[ticker]['baseline']
             beats = all_results[ticker]['beats_baseline']
             bt = all_results[ticker]['backtest']
+            best = all_results[ticker]['best_model_type']
 
-            print(f"\n{ticker}:")
+            print(f"\n{ticker} [{best}]:")
             print(f"  Accuracy:        {metrics['accuracy']:.4f} (Baseline: {baseline:.4f})")
             print(f"  F1 Score:        {metrics['f1']:.4f}")
             print(f"  ML Status:       {'✅ Beats baseline' if beats else '❌ Below baseline'}")

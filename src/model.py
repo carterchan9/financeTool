@@ -1,14 +1,15 @@
 """
-Model Training Module for Phase 0 MVP.
+Model Training Module for Phase 1.
 
 This module handles:
-- Training ML models (Logistic Regression, Random Forest)
+- Training ML models (Logistic Regression, Random Forest, XGBoost)
 - Saving and loading trained models
 - Making predictions
 
 Functions:
     train_logistic_regression: Train logistic regression classifier
     train_random_forest: Train random forest classifier
+    train_xgboost: Train XGBoost classifier
     train_model: Main training dispatcher
     save_model: Persist model to disk
     load_model: Load saved model
@@ -19,6 +20,7 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
 from pathlib import Path
 import joblib
 from typing import Optional, Tuple
@@ -27,6 +29,7 @@ import logging
 from src.config import (
     LOGISTIC_PARAMS,
     RANDOM_FOREST_PARAMS,
+    XGBOOST_PARAMS,
     MODEL_PATH,
     RANDOM_SEED
 )
@@ -104,6 +107,40 @@ def train_random_forest(
     return model
 
 
+def train_xgboost(
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    params: dict = None
+) -> XGBClassifier:
+    """
+    Train XGBoost classifier.
+
+    XGBoost builds trees sequentially, each correcting the errors of the
+    previous. It typically outperforms Random Forest on tabular data because
+    it focuses learning on hard examples.
+
+    Args:
+        X_train: Training features
+        y_train: Training labels
+        params: Model hyperparameters. If None, uses config.XGBOOST_PARAMS
+
+    Returns:
+        Trained XGBClassifier model
+    """
+    if params is None:
+        params = XGBOOST_PARAMS.copy()
+
+    logger.info("Training XGBoost model...")
+    logger.info(f"Parameters: {params}")
+
+    model = XGBClassifier(**params)
+    model.fit(X_train, y_train)
+
+    logger.info("✅ XGBoost training complete")
+
+    return model
+
+
 def train_model(
     X_train: np.ndarray,
     y_train: np.ndarray,
@@ -143,8 +180,10 @@ def train_model(
         model = train_logistic_regression(X_train, y_train, params)
     elif model_type == "random_forest":
         model = train_random_forest(X_train, y_train, params)
+    elif model_type == "xgboost":
+        model = train_xgboost(X_train, y_train, params)
     else:
-        raise ValueError(f"Unknown model type: {model_type}. Must be 'logistic' or 'random_forest'")
+        raise ValueError(f"Unknown model type: {model_type}. Must be 'logistic', 'random_forest', or 'xgboost'")
 
     return model
 

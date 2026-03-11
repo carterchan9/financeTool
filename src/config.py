@@ -118,6 +118,24 @@ RANDOM_FOREST_PARAMS = {
     "class_weight": "balanced"  # Handle class imbalance
 }
 
+# XGBoost parameters
+XGBOOST_PARAMS = {
+    "n_estimators": 200,        # Number of boosting rounds
+    "max_depth": 4,             # Shallow trees reduce overfitting
+    "learning_rate": 0.05,      # Step size shrinkage
+    "subsample": 0.8,           # Row sampling per tree
+    "colsample_bytree": 0.8,    # Feature sampling per tree
+    "min_child_weight": 3,      # Minimum sum of instance weight in a leaf
+    "scale_pos_weight": 1,      # Balance positive/negative weights
+    "random_state": RANDOM_SEED,
+    "n_jobs": -1,
+    "eval_metric": "logloss",
+    "verbosity": 0,
+}
+
+# All models to run in the pipeline
+ALL_MODEL_TYPES = ["logistic", "random_forest", "xgboost"]
+
 # ============================================================================
 # Visualization Configuration
 # ============================================================================
@@ -206,8 +224,8 @@ def validate_config():
         raise ValueError("VOLATILITY_WINDOW must be positive")
 
     # Validate model type
-    if MODEL_TYPE not in ["logistic", "random_forest"]:
-        raise ValueError("MODEL_TYPE must be 'logistic' or 'random_forest'")
+    if MODEL_TYPE not in ["logistic", "random_forest", "xgboost"]:
+        raise ValueError("MODEL_TYPE must be 'logistic', 'random_forest', or 'xgboost'")
 
     return True
 
@@ -233,6 +251,8 @@ def get_model_params(model_type: str = None):
         return LOGISTIC_PARAMS.copy()
     elif model_type == "random_forest":
         return RANDOM_FOREST_PARAMS.copy()
+    elif model_type == "xgboost":
+        return XGBOOST_PARAMS.copy()
     else:
         raise ValueError(f"Unknown model type: {model_type}")
 
