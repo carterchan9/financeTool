@@ -1,6 +1,6 @@
 """
-Configuration file for Phase 1.
-All parameters for data, features, and models centralized here.
+Configuration file for Phase 1 & 2.
+All parameters for data, features, models, and experiment tracking centralized here.
 
 This file contains all configurable parameters for the Finance ML pipeline.
 Modify these values to experiment with different settings without changing code.
@@ -135,6 +135,34 @@ XGBOOST_PARAMS = {
 
 # All models to run in the pipeline
 ALL_MODEL_TYPES = ["logistic", "random_forest", "xgboost"]
+
+# ============================================================================
+# Phase 2: Sequence Model Configuration
+# ============================================================================
+
+# Sliding window length (days of history each prediction sees)
+SEQ_LEN = 20
+
+# Training epochs (early stopping will usually kick in before this)
+N_EPOCHS = 50
+
+# Batch size for DataLoader
+BATCH_SIZE = 32
+
+# LSTM / GRU architecture
+LSTM_HIDDEN = 64       # Hidden state dimension
+LSTM_LAYERS = 2        # Number of stacked layers
+LSTM_DROPOUT = 0.2     # Dropout probability (between layers and before FC)
+LEARNING_RATE = 1e-3   # Adam learning rate
+
+# Early stopping patience (epochs without loss improvement)
+EARLY_STOPPING_PATIENCE = 10
+
+# Optuna hyperparameter search
+N_TUNING_TRIALS = 30   # Number of trials per model type
+
+# MLflow experiment tracking
+MLFLOW_EXPERIMENT = "finance-ml-phase2"
 
 # ============================================================================
 # Visualization Configuration
